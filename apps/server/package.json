@@ -11,6 +11,8 @@
   "packageManager": "pnpm@10.30.3",
   "dependencies": {
     "@hono/node-server": "^2.0.2",
-    "hono": "^4.12.18"
+    "@packages/agent-tools": "workspace:*",
+    "hono": "^4.12.18",
+    "zod": "^4.4.3"
   }
 }

@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('electron', {
-  openApp: (app: string) =>
-    ipcRenderer.invoke('open-app', app)
+  chatSend: (prompt: string) =>
+    ipcRenderer.invoke('chat:send', prompt)
 })
 console.log('PRELOAD LOADED')

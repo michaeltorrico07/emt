@@ -1,13 +1,8 @@
-import { openAppSchema } from './schema.js'
-import { execute } from './execute.js'
+import { jsonAppSchema, openAppSchema } from './schema.js'
 
-export const openAppTool = {
+export const openApp = {
   name: 'open_app',
-
-  description:
-    'Open a desktop application installed on the user system',
-
-  schema: openAppSchema,
-
-  execute
+  description: 'Open a desktop application installed on the user system',
+  jsonSchema: jsonAppSchema,
+  zodSchema: openAppSchema
 }

@@ -1,30 +1,25 @@
-import { exec } from 'node:child_process'
+import { spawn } from 'node:child_process'
 import type { OpenAppInput } from './schema.js'
 
 export async function execute({ app }: OpenAppInput) {
   return new Promise((resolve, reject) => {
-    let command = ''
+    let target: string
 
     switch (process.platform) {
       case 'win32':
-        command = `start "" "${app}"`
+        target = app
         break
 
       default:
-        return reject(
-          new Error('Unsupported platform')
-        )
+        return reject(new Error('Unsupported platform'))
     }
-
-    exec(command, (error: any) => {
-      if (error) {
-        reject(error)
-      } else {
-        resolve({
-          success: true,
-          app
-        })
-      }
+    console.log(target)
+    const child = spawn('explorer.exe', [target], {
+      detached: true,
+      stdio: 'ignore',
     })
+
+    child.unref()
+    resolve({ success: true, app })
   })
 }

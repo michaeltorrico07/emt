@@ -5,3 +5,4 @@ export const openAppSchema = z.object({
 })
 
 export type OpenAppInput = z.infer<typeof openAppSchema>
+export const jsonAppSchema = z.toJSONSchema(openAppSchema)

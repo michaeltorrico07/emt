@@ -2,4 +2,13 @@
 GET http://localhost:3000/
 
 ###
-GET http://localhost:3000/test
+POST http://localhost:3000/chat
+Content-Type: 'application/json'
+
+{
+  "text": "podrias abrir ultrakill?",
+  "apps": [
+    { "id": "ultrakill", "name": "Ultrakill" },
+    { "id": "spotify", "name": "Spotify" }
+  ]
+}

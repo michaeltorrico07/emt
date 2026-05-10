@@ -1,5 +1,5 @@
 interface Window {
   electron: {
-    openApp: (app: string) => Promise<void>
+    chatSend: (prompt: string) => Promise<{type: string, content: string}>
   }
 }

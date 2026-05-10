@@ -1,30 +1,74 @@
-import { useCallback } from 'react'
+import { useState } from 'react'
 
 function App() {
+  const [messages, setMessages] = useState<{role: string, text:string}[]>([]);
+  const [input, setInput] = useState("");
 
+  async function sendMessage() {
+    if (!input.trim()) return;
 
-  const callingTool = useCallback(async ()=>{
-    await window.electron.openApp(
-      'steam://rungameid/1229490'
-    )
-  },[])
-  console.log(window.electron)
+    const newMessages = [
+      ...messages,
+      { role: "user", text: input },
+    ];
+    setMessages(newMessages);
+    setInput("");
+
+    const result = await window.electron.chatSend(input)
+    console.log(result)
+    const response = [
+      ...newMessages,
+      { role: "assistant", text: result.content },
+    ];
+
+    setMessages(response);
+  }
+
   return (
-    <div className="flex h-screen items-center justify-center">
-      <button
-        type="button"
-        className="text-center cursor-pointer px-4 py-1"
-        onClick={callingTool}
-      >
-        LOL
-      </button>
-      <div className='flex-col border-2 rounded-lg px-4 border-[#ff297b]'>
-        <div className='border px-2 py-1 rounded-lg text-sm leading-[14px]'>abri ultra god</div>
-        <div className='border px-2 py-1 rounded-lg text-sm leading-[14px]'>abri ultra god</div>
-        
-        <input className="outline-none" />
+    <>
+      <div className="flex h-screen w-screen flex-col items-center justify-start py-4">
+        <div className="w-[40%]">EmilIA</div>
+
+        <div className="flex flex-col bg-black/30 w-[40%] max-h-[80%] h-full rounded-lg">
+
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            {messages.map((m, i) => (
+              <div
+                key={i}
+                className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-xs px-4 py-2 rounded-2xl shadow text-sm ${
+                    m.role === "user"
+                      ? "bg-blue-500 text-white"
+                      : "bg-white text-gray-800"
+                  }`}
+                >
+                  {m.text}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="p-2 flex gap-2">
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Escribe un mensaje..."
+              className="flex-1 shadow rounded-lg px-3 py-0 text-sm outline-none bg-white"
+            />
+            <button
+              onClick={sendMessage}
+              className="bg-blue-500 text-white px-4 py-1 text-sm rounded-xl cursor-pointer"
+            >
+              Enviar
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
+
+    </>
   )
 }
 

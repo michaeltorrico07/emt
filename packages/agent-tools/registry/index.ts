@@ -1,2 +1,2 @@
-export * from '../desktop/sum.js'
-export * from '../desktop/open-app/index.js'
+export { toolExecutors as executors } from './executors.js'
+export { toolSchemas as schemas } from './schema.js'
