@@ -1,0 +1,6 @@
+
+> @apps/desktop@ build C:\Users\Michael\githubcosas\emt\apps\desktop
+> tsc
+
+src/main.ts(2,21): error TS2307: Cannot find module '@packages/agent-tools' or its corresponding type declarations.
+ ELIFECYCLE  Command failed with exit code 2.

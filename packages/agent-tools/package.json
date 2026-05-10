@@ -1,0 +1,20 @@
+{
+  "name": "@packages/agent-tools",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "./dist/registry/index.js",
+  "types": "./dist/registry/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/registry/index.d.ts",
+      "import": "./dist/registry/index.js"
+    }
+  },
+  "scripts": {
+    "dev": "tsc --watch",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "zod": "^4.4.3"
+  }
+}

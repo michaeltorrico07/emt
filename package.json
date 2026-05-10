@@ -1,0 +1,21 @@
+{
+  "name": "emt",
+  "private": true,
+  "version": "1.0.0",
+  "description": "",
+  "type": "module",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build"
+  },
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.30.3",
+  "devDependencies": {
+    "@types/node": "^25.6.2",
+    "tsx": "^4.21.0",
+    "turbo": "^2.9.12",
+    "typescript": "^6.0.3",
+    "wait-on": "^9.0.5"
+  }
+}
