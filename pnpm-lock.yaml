@@ -29,6 +29,9 @@ importers:
       '@packages/agent-tools':
         specifier: workspace:*
         version: link:../../packages/agent-tools
+      '@packages/ai-core':
+        specifier: workspace:*
+        version: link:../../packages/ai-core
       concurrently:
         specifier: ^9.2.1
         version: 9.2.1
@@ -54,12 +57,12 @@ importers:
       '@packages/agent-tools':
         specifier: workspace:*
         version: link:../../packages/agent-tools
+      '@packages/ai-core':
+        specifier: workspace:*
+        version: link:../../packages/ai-core
       hono:
         specifier: ^4.12.18
         version: 4.12.18
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
 
   packages/agent-tools:
     dependencies:
@@ -72,6 +75,15 @@ importers:
       zod-to-json-schema:
         specifier: ^3.25.2
         version: 3.25.2(zod@4.4.3)
+
+  packages/ai-core:
+    dependencies:
+      '@packages/agent-tools':
+        specifier: workspace:*
+        version: link:../agent-tools
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
 
   packages/avatar-ui:
     dependencies:

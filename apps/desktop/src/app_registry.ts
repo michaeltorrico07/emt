@@ -25,6 +25,11 @@ export const APP_REGISTRY = [
     exec:  path.join(LOCAL_APP_PATH, 'Steam', 'OFF.url')
   },
   {
+    id: 'lefo',
+    name: 'left 4 dead 2',
+    exec:  path.join(LOCAL_APP_PATH, 'Steam', 'Left 4 Dead 2.url')
+  },
+  {
     id: 'balatro',
     name: 'Balatro',
     exec: path.join(LOCAL_APP_PATH, 'Steam', 'Balatro.url')

@@ -5,4 +5,4 @@ export const openApp = {
   description: 'Open a desktop application installed on the user system',
   jsonSchema: jsonAppSchema,
   zodSchema: openAppSchema
-}
+} as const

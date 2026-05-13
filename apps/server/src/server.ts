@@ -2,13 +2,13 @@ import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
 import { schemas } from '@packages/agent-tools'
 import { extractJSON } from './extractJson.js'
-import { ChatResponseSchema } from './chatRes.js'
+import { ChatResponse, ChatResponseSchema } from '@packages/ai-core'
 
 const app = new Hono()
 
 app.get('/', (c) => c.text('Hono!'))
 
-async function callLLM(prompt: string, system: string, retries = 2) {
+const callLLM = async (prompt: string, system: string, retries = 2): Promise<ChatResponse>  =>  {
   for (let i = 0; i < retries; i++) {
     const res = await fetch("http://localhost:11434/api/generate", {
       method: "POST",
@@ -34,8 +34,9 @@ async function callLLM(prompt: string, system: string, retries = 2) {
   }
 
   return {
-    type: "error",
-    content: "No pude interpretar la respuesta del modelo",
+    type: "ValidationError",
+    error: true,
+    message: "No pude interpretar la respuesta del modelo",
   } as const
 }
 
@@ -61,6 +62,14 @@ app.post('/chat', async (c) => {
 const systemPrompt = `
 You are a desktop assistant. Your ONLY job is to return valid JSON, nothing else.
 
+Your personality is:
+- extremely polite
+- gentle and friendly
+- obedient and helpful
+- speaks in a soft and respectful tone
+- concise
+- NEVER break JSON format
+
 ## Tools available:
 ${toolsContext}
 
@@ -78,20 +87,118 @@ ${appsContext}
 - NEVER invent apps not in the list
 - NEVER respond with prose, only JSON
 - The "app" field must be the app's id, not its name
+- The "message" field should sound kind, soft, and respectful in Spanish
 
 ## Examples:
-${firstApp ? `- "Open ${firstApp.name}" -> { "type": "tool", "tool": "open_app", "input": { "app": "${firstApp.id}" } }` : ''}
+${firstApp ? `- "Open ${firstApp.name}" ->
+{ "type": "tool", "tool": "open_app", "input": { "app": "${firstApp.id}" }, "message": "Claro, abriendo ${firstApp.name} ahora mismo." }` : ''}
 
 - "Take a screenshot" ->
-{ "type": "tool", "tool": "capture_screenshot", "input": {} }
+{ "type": "tool", "tool": "capture_screenshot", "input": {}, "message": "Claro, tomando una captura de pantalla." }
 
 - "Open Photoshop" ->
-{ "type": "error", "error": "APP_NOT_FOUND", "message": "The app 'Photoshop' is not available." }
+{ "type": "error", "error": "APP_NOT_FOUND", "message": "Lo siento, no pude encontrar la aplicación 'Photoshop' en el sistema." }
 `.trim()
 
   const userPrompt = `User request: ${text}`
   const result = await callLLM(userPrompt, systemPrompt)
   return c.json(result)
+})
+
+app.post('/test', async (c) => {
+  const arrayBuffer = await c.req.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const base64Image = buffer.toString('base64')
+
+  const visionRes = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'qwen2.5vl:3b',
+      prompt: `
+Describe la screenshot.
+No hables del personaje con un dialogo en la pantalla
+Responde SOLO JSON:
+{
+  "app_principal": "",
+  "accion_probable": "",
+  "texto_visible": [],
+  "inferencia": ""
+}
+
+No inventes información.
+`,
+      images: [base64Image],
+      stream: false,
+    }),
+  })
+
+  const visionData = await visionRes.json()
+  console.log(visionData)
+  if (visionData.error) {
+    return c.json({
+      error: true,
+      message: 'Model returned no response',
+    }, 500)
+  }
+  const cleaned = visionData.response
+    .replace(/```json/g, '')
+    .replace(/```/g, '')
+    .trim()
+
+  const parsed = JSON.parse(cleaned)
+
+  const commentSystem = `
+Eres un asistente observando la pantalla del usuario.
+
+Tu trabajo:
+- hacer comentarios breves y naturales
+- sonar amable y casual
+- NO repetir literalmente la descripción
+- NO inventar cosas
+
+Reglas IMPORTANTES:
+- Si te vas a llamar a ti mismo hazlo en tercera persona y tu nombre es MAMBO
+- No uses palabras como El usuario, parece que necesitas ayuda, solo haz comentarios como si estuvieras conversando con el
+- máximo 120 caracteres
+- si necesitas extenderte:
+  - usa máximo 2 párrafos
+  - cada párrafo máximo 120 caracteres
+- sin markdown
+- sin emojis
+- sin listas
+`.trim()
+
+  const commentPrompt = `
+Observaciones:
+
+${JSON.stringify(parsed, null, 2)}
+
+Genera un comentario natural.
+`.trim()
+
+  const commentRes = await fetch('http://localhost:11434/api/generate', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'llama3.1:8b',
+      system: commentSystem,
+      prompt: commentPrompt,
+      stream: false,
+    }),
+  })
+  console.log(commentRes)
+  const commentData = await commentRes.json()
+
+  return c.json({
+    observation: parsed,
+    comment: commentData.response.trim(),
+  })
 })
 
 serve({

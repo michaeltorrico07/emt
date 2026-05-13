@@ -5,4 +5,4 @@ import { captureScreenshot } from '../desktop/capture_screenshot/tool.js'
 export const toolSchemas = [
   openApp,
   captureScreenshot
-]
+] as const

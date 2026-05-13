@@ -1,1 +1,12 @@
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Indie Flower";
+  src: url("/fonts/IndieFlower-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@theme {
+  --font-indie: "Indie Flower", cursive;
+}

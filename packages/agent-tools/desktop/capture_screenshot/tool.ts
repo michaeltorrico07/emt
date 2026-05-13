@@ -5,4 +5,4 @@ export const captureScreenshot = {
   description: 'Capture a screenshot of the current desktop screen',
   jsonSchema: jsonCaptureScreenshotSchema,
   zodSchema: captureScreenshotSchema
-}
+} as const
