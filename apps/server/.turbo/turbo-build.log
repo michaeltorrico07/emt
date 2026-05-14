@@ -1,6 +1,0 @@
-
-> @apps/server@1.0.0 build C:\Users\Michael\githubcosas\emt\apps\server
-> tsc
-
-src/server.ts(5,50): error TS2307: Cannot find module './chatRes.js' or its corresponding type declarations.
- ELIFECYCLE  Command failed with exit code 2.

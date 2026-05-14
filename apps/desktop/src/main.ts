@@ -1,11 +1,18 @@
-import { app, BrowserWindow, ipcMain, screen, desktopCapturer, nativeImage } from 'electron'
+import { app, BrowserWindow, ipcMain, screen, desktopCapturer } from 'electron'
 import { executors } from '@packages/agent-tools'
-
 import { fileURLToPath } from 'node:url'
 import { APP_REGISTRY } from './app_registry.js'
 import { ChatResponse } from '@packages/ai-core'
 import Fuse from 'fuse.js'
+import dotenv from 'dotenv'
+import path from 'node:path'
 
+dotenv.config({
+  path: path.resolve(process.cwd(), '../../.env'),
+})
+
+dotenv.config()
+const api_url = process.env.API_URL
 export async function captureScreen(): Promise<Buffer> {
   const sources = await desktopCapturer.getSources({
     types: ['screen'],
@@ -29,8 +36,7 @@ async function bootstrap() {
 
   ipcMain.handle('agent:observe-screen', async (_) => {
   const imageBuffer = await captureScreen() 
-
-  const res = await fetch('http://localhost:3000/test', {
+  const res = await fetch(`http://localhost:3000/test`, {
     method: 'POST',
     headers: {
       'Content-Type': 'image/jpeg',
@@ -42,7 +48,7 @@ async function bootstrap() {
     throw new Error(text)
   }
   const data = await res.json()
-  console.log(data)
+  console.log('kwk')
   return data.comment
 })
 
@@ -53,7 +59,7 @@ async function bootstrap() {
       threshold: 0.4
     }) 
     console.log(prompt) 
-    const res = await fetch('http://localhost:3000/chat', {
+    const res = await fetch(`http://localhost:3000/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: prompt, apps }),   

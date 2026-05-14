@@ -3,9 +3,17 @@ import { serve } from '@hono/node-server'
 import { schemas } from '@packages/agent-tools'
 import { extractJSON } from './extractJson.js'
 import { ChatResponse, ChatResponseSchema } from '@packages/ai-core'
+import dotenv from 'dotenv'
+import path from 'node:path'
+
+dotenv.config({
+  path: path.resolve(process.cwd(), '../../.env'),
+})
+
+dotenv.config()
+
 
 const app = new Hono()
-
 app.get('/', (c) => c.text('Hono!'))
 
 const callLLM = async (prompt: string, system: string, retries = 2): Promise<ChatResponse>  =>  {
@@ -14,7 +22,7 @@ const callLLM = async (prompt: string, system: string, retries = 2): Promise<Cha
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "llama3.1:8b",
+        model: process.env.CHAT_MODEL,
         system,
         prompt,
         stream: false,
@@ -117,7 +125,7 @@ app.post('/test', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'qwen2.5vl:3b',
+      model: process.env.VISION_MODEL,
       prompt: `
 Describe la screenshot.
 No hables del personaje con un dialogo en la pantalla
@@ -137,20 +145,21 @@ No inventes información.
   })
 
   const visionData = await visionRes.json()
-  console.log(visionData)
+
   if (visionData.error) {
     return c.json({
       error: true,
       message: 'Model returned no response',
     }, 500)
   }
-  const cleaned = visionData.response
-    .replace(/```json/g, '')
-    .replace(/```/g, '')
-    .trim()
+  const cleaned = visionData.response .replace(/```json/g, '').replace(/```/g, '').trim()
 
   const parsed = JSON.parse(cleaned)
-
+  const names: Record<string, string> = {
+    "emilia": "Emilia o simplemente Lia",
+    "mambo": "MAMBO",
+    "jane-doe": "Jane"
+  }
   const commentSystem = `
 Eres un asistente observando la pantalla del usuario.
 
@@ -161,7 +170,7 @@ Tu trabajo:
 - NO inventar cosas
 
 Reglas IMPORTANTES:
-- Si te vas a llamar a ti mismo hazlo en tercera persona y tu nombre es MAMBO
+- Si te vas a llamar a ti mismo hazlo en tercera persona y tu nombre es ${names[process.env.THEME || "emilia"]}
 - No uses palabras como El usuario, parece que necesitas ayuda, solo haz comentarios como si estuvieras conversando con el
 - máximo 120 caracteres
 - si necesitas extenderte:
@@ -186,7 +195,7 @@ Genera un comentario natural.
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'llama3.1:8b',
+      model: process.env.CHAT_MODEL,
       system: commentSystem,
       prompt: commentPrompt,
       stream: false,
@@ -206,4 +215,4 @@ serve({
   port: 3000
 })
 
-console.log('Server running on http://localhost:3000')
+console.log(`Server running on http://localhost:3000`)

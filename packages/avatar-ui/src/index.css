@@ -9,4 +9,32 @@
 
 @theme {
   --font-indie: "Indie Flower", cursive;
+
+  /* aliases que usa la app */
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+  --color-text: var(--text);
+}
+
+/* tema emilia(default because she is the goat) */
+:root {
+  --surface: #FEFEFE;
+  --primary: #9895D6;
+  --secondary: #FEFEFE;
+  --text: #B58DC2;
+}
+
+/* tema mambo */
+[data-theme="mambo"] {
+  --surface: #FEFEFE;
+  --primary: #DC9C2D;
+  --secondary: #FEFEFE;
+  --text: #DC9C2D;
+}
+[data-theme="jane-doe"] {
+  --surface: #FEFEFE;
+  --primary: #919191;
+  --secondary: #FEFEFE;
+  --text: #919191;
 }

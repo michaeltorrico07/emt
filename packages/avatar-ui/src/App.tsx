@@ -1,31 +1,35 @@
 import { useState, useEffect } from 'react'
-import mambo from './assets/mambo.png'
+import { characters } from './utils/ch'
+
+const currentTheme = window.env.theme || 'emilia'
+
+const character = characters[currentTheme as keyof typeof characters] ?? characters.emilia
 
 function App() {
   const [messages, setMessages] = useState<{ role: string; text: string }[]>([])
   const [input, setInput] = useState('')
   const [comment, setComment] = useState('')
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = currentTheme
+  }, [])
+
   useEffect(() => {
     let cancelled = false
 
-    const loop = async () => {
-      while (!cancelled) {
-        try {
-          const result = await window.electron.agentObserveScreen()
-          setComment(result)
-        } catch (error) {
-          console.error(error)
-        }
-
-        await new Promise((resolve) => setTimeout(resolve, 3000))
+    const tick = async () => {
+      if (cancelled) return
+      try {
+        const result = await window.electron.agentObserveScreen()
+        if (!cancelled) setComment(result)
+      } catch (error) {
+        if (!cancelled) console.error(error)
       }
+      if (!cancelled) setTimeout(tick, 7000)
     }
 
-    loop()
-
-    return () => {
-      cancelled = true
-    }
+    tick()
+    return () => { cancelled = true }
   }, [])
 
   async function sendMessage() {
@@ -57,22 +61,23 @@ function App() {
             className="
               relative
               left-1
-              bg-[#DC9C2D]
-              p-[2px]
+              bg-secondary
+              p-px
               rounded-[3rem_4rem_3rem_4rem]
               rotate-3
               shadow-xl
                 before:content-['']
                 before:absolute
                 before:bottom-[-7px]
-                before:left-16
-                before:w-5
+                before:left-1/2
+                before:-translate-x-1/2
+                before:w-4
                 before:h-4
                 before:bg-white
                 before:rotate-45
-                before:border-b-2
-                before:border-r-2
-                before:border-[#DC9C2D]
+                before:border-b
+                before:border-r
+                before:border-secondary
             "
           >
             <div
@@ -84,35 +89,36 @@ function App() {
                 pt-2
                 ${comment !== '' ? 'pb-3' : 'pb-2'}
                 rounded-[3rem_4rem_3rem_4rem]
-                border
-                border-black
+                border-[3px]
+                border-primary
                 justify-center
                 items-center
                 before:content-['']
                 before:absolute
-                before:bottom-[-9px]
-                before:left-16
+                before:bottom-[-10px]
+                before:left-1/2
+                before:-translate-x-1/2
                 before:w-4
                 before:h-4
-                before:bg-white
+                before:bg-surface
                 before:rotate-45
-                before:border-b
-                before:border-r
-                before:border-black
+                before:border-b-[3px]
+                before:border-r-[3px]
+                before:border-primary
               `}
             >
               <p 
                 style={{
                   WebkitTextStroke: "1px",
                 }}
-                className="rotate-1 font-indie tracking-[0.175em] text-[#030303]"
+                className="rotate-1 font-indie tracking-[0.175em] text-text"
               >
-                {comment === '' ? 'MAMBO' : comment}
+                {comment === '' ? `${character.name}` : comment}
               </p>
             </div>
           </div>
         </div>
-        <img className=" mt-4" src={mambo} style={{width: 120, height: 'auto'}}/>
+        <img className=" mt-4" src={character.image} style={{width: 120, height: 'auto'}}/>
         <div className="
         mb-2 justify-self-end">
           <input
@@ -121,6 +127,7 @@ function App() {
             onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
             className="
+                outline-primary
                 relative
                 text-sm
                 font-medium
@@ -133,7 +140,7 @@ function App() {
                 text-gray-800
                 leading-relaxed
                 border-2
-                border-[#181818]
+                border-primary
             "
           />
         </div>
