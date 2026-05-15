@@ -1,21 +1,17 @@
 {
   "name": "@apps/desktop",
+  "version": "1.0.0",
+  "private": true,
   "type": "module",
-  "main": "dist/main.js",
   "scripts": {
-    "dev": "concurrently \"tsc --watch\" \"wait-on dist/main.js && electronmon .\"",
-    "build": "tsc"
-  },
-  "packageManager": "pnpm@10.30.3",
-  "dependencies": {
-    "@packages/agent-tools": "workspace:*",
-    "@packages/ai-core": "workspace:*",
-    "concurrently": "^9.2.1",
-    "dotenv": "^17.4.2",
-    "fuse.js": "^7.3.0"
+    "dev": "tauri dev",
+    "frontend:dev": "vite",
+    "frontend:build": "vite build",
+    "build": "tauri build",
+    "preview": "vite preview"
   },
   "devDependencies": {
-    "electron": "^42.0.1",
-    "electronmon": "^2.0.4"
-  }
+    "@tauri-apps/cli": "^2"
+  },
+  "packageManager": "pnpm@10.30.3"
 }

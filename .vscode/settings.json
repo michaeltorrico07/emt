@@ -1,5 +1,5 @@
 {
-  "C_Cpp.default.compilerPath": "C:/msys64/ucrt64/bin/gcc.exe",
+  "C_Cpp.default.compilerPath": "C:/Program Files/Git/bin/bash.exe",
   "editor.quickSuggestions": {
     "comments": "off",
     "strings": "off",
@@ -7,5 +7,11 @@
   },
   "editor.suggestOnTriggerCharacters": false,
   "editor.inlineSuggest.enabled": false,
-  "editor.parameterHints.enabled": false
+  "editor.parameterHints.enabled": false,
+  "rust-analyzer.linkedProjects": [
+    "apps/desktop/src-tauri/Cargo.toml"
+  ],
+  "rust-analyzer.procMacro.enable": true,
+  "editor.formatOnSave": false
+  
 }

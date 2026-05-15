@@ -1,64 +1,17 @@
-import { useState, useEffect } from 'react'
-import { characters } from './utils/ch'
+import { characters, type Character } from './utils/ch'
+const theme = import.meta.env.VITE_THEME as Character
 
-const currentTheme = window.env.theme || 'emilia'
-
-const character = characters[currentTheme as keyof typeof characters] ?? characters.emilia
+const character = characters[theme] ?? characters.emilia
 
 function App() {
-  const [messages, setMessages] = useState<{ role: string; text: string }[]>([])
-  const [input, setInput] = useState('')
-  const [comment, setComment] = useState('')
-
-  useEffect(() => {
-    document.documentElement.dataset.theme = currentTheme
-  }, [])
-
-  useEffect(() => {
-    let cancelled = false
-
-    const tick = async () => {
-      if (cancelled) return
-      try {
-        const result = await window.electron.agentObserveScreen()
-        if (!cancelled) setComment(result)
-      } catch (error) {
-        if (!cancelled) console.error(error)
-      }
-      if (!cancelled) setTimeout(tick, 7000)
-    }
-
-    tick()
-    return () => { cancelled = true }
-  }, [])
-
-  async function sendMessage() {
-    if (!input.trim()) return;
-
-    const newMessages = [
-      ...messages,
-      { role: "user", text: input },
-    ];
-    setMessages(newMessages);
-    setInput("");
-
-    const result = await window.electron.chatSend(input)
-    console.log(result)
-    const response = [
-      ...newMessages,
-      { role: "assistant", text: result.response },
-    ];
-
-    setMessages(response);
-  }
-
   return (
     <>
-      <div className="flex flex-col w-[275px] h-[450px] items-center justify-end mt-auto">
+      <div class="flex flex-col w-68.75 h-112 items-center justify-end mt-auto">
         {/*<div className="w-full flex flex-row max-w-xl ml-1 font-medium pt-4 text-[#9778AB]">Emil <div className="font-bold text-[#9778AB]" >IA</div></div> */}
-        <div className="flex justify-start">
+        <div class="flex justify-start">
           <div
-            className="
+            class="
+              mt-1
               relative
               left-1
               bg-secondary
@@ -68,7 +21,7 @@ function App() {
               shadow-xl
                 before:content-['']
                 before:absolute
-                before:bottom-[-7px]
+                before:-bottom-1.75
                 before:left-1/2
                 before:-translate-x-1/2
                 before:w-4
@@ -81,13 +34,13 @@ function App() {
             "
           >
             <div
-              className={`
+              class={`
                 relative
                 bg-white
-                pl-6
-                ${comment !== '' ? 'pr-6' : 'pr-4'}
+                pl-5
+                pr-5
                 pt-2
-                ${comment !== '' ? 'pb-3' : 'pb-2'}
+                pb-2
                 rounded-[3rem_4rem_3rem_4rem]
                 border-[3px]
                 border-primary
@@ -95,7 +48,7 @@ function App() {
                 items-center
                 before:content-['']
                 before:absolute
-                before:bottom-[-10px]
+                before:-bottom-2.5
                 before:left-1/2
                 before:-translate-x-1/2
                 before:w-4
@@ -109,24 +62,22 @@ function App() {
             >
               <p 
                 style={{
-                  WebkitTextStroke: "1px",
+                  "-webkit-text-stroke": "1px",
                 }}
-                className="rotate-1 font-indie tracking-[0.175em] text-text"
+                class="-rotate-1 font-indie tracking-[0.175em] text-text"
               >
-                {comment === '' ? `${character.name}` : comment}
+                {character.name}
               </p>
             </div>
           </div>
         </div>
-        <img className=" mt-4" src={character.image} style={{width: 120, height: 'auto'}}/>
-        <div className="
-        mb-2 justify-self-end">
+        <img class=" mt-4" src={character.image} width={200}/>
+        <div class="
+        pointer-events-auto
+        mb-0.5 justify-self-end">
           <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             placeholder="Escribe un mensaje..."
-            className="
+            class="
                 outline-primary
                 relative
                 text-sm

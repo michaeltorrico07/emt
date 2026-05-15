@@ -30,7 +30,7 @@
   --surface: #FEFEFE;
   --primary: #DC9C2D;
   --secondary: #FEFEFE;
-  --text: #DC9C2D;
+  --text: #000000;
 }
 [data-theme="jane-doe"] {
   --surface: #FEFEFE;

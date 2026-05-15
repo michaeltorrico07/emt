@@ -1,0 +1,29 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "emt",
+  "version": "0.1.0",
+  "identifier": "com.michael.emt",
+
+  "build": {
+    "beforeDevCommand": "pnpm --filter @packages/avatar-ui dev",
+    "beforeBuildCommand": "pnpm --filter @packages/avatar-ui build",
+
+    "devUrl": "http://localhost:5173",
+
+    "frontendDist": "../../../packages/avatar-ui/dist"
+  },
+
+  "app": {
+    "windows": [
+      {
+        "title": "emt",
+        "width": 280,
+        "height": 450,
+        "transparent": true,
+        "decorations": false,
+        "shadow": false,
+        "alwaysOnTop": true
+      }
+    ]
+  }
+}

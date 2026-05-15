@@ -201,9 +201,8 @@ Genera un comentario natural.
       stream: false,
     }),
   })
-  console.log(commentRes)
   const commentData = await commentRes.json()
-
+  console.log(commentData.response)
   return c.json({
     observation: parsed,
     comment: commentData.response.trim(),
