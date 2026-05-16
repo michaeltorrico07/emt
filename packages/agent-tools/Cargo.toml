@@ -1,0 +1,15 @@
+# packages/agent-tools/Cargo.toml
+[package]
+name = "agent-tools"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "agent-tools"
+
+[dependencies]
+uiautomation = "0.11"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+anyhow = "1"
+reqwest = { version = "0.12", features = ["blocking", "json"] }

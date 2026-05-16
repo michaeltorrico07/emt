@@ -1,8 +1,7 @@
 import { Hono } from 'hono'
 import { serve } from '@hono/node-server'
-import { schemas } from '@packages/agent-tools'
 import { extractJSON } from './extractJson.js'
-import { ChatResponse, ChatResponseSchema } from '@packages/ai-core'
+import { ChatResponse, ChatResponseSchema, schemas } from '@packages/ai-core'
 import dotenv from 'dotenv'
 import path from 'node:path'
 
@@ -114,10 +113,8 @@ ${firstApp ? `- "Open ${firstApp.name}" ->
 })
 
 app.post('/test', async (c) => {
-  const arrayBuffer = await c.req.arrayBuffer()
-  const buffer = Buffer.from(arrayBuffer)
-
-  const base64Image = buffer.toString('base64')
+  const { snapshot } = await c.req.json()
+  console.log(snapshot)
 
   const visionRes = await fetch('http://localhost:11434/api/generate', {
     method: 'POST',
@@ -125,9 +122,9 @@ app.post('/test', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: process.env.VISION_MODEL,
+      model: process.env.CHAT_MODEL,
       prompt: `
-Describe la screenshot.
+Esto es lo que está viendo el usuario en su pantalla:\n\n${snapshot}\n\n
 No hables del personaje con un dialogo en la pantalla
 Responde SOLO JSON:
 {
@@ -139,7 +136,6 @@ Responde SOLO JSON:
 
 No inventes información.
 `,
-      images: [base64Image],
       stream: false,
     }),
   })
@@ -175,7 +171,7 @@ Reglas IMPORTANTES:
 - máximo 120 caracteres
 - si necesitas extenderte:
   - usa máximo 2 párrafos
-  - cada párrafo máximo 120 caracteres
+  - cada párrafo máximo 100 caracteres
 - sin markdown
 - sin emojis
 - sin listas

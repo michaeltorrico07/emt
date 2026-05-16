@@ -1,8 +1,16 @@
+.env
+
+
+# Rust
+target/
+
+# Node
 node_modules
 dist
 build
-.env
-.env.local
-.turbo
+.turbo/
 *.tsbuildinfo
 /*tsconfig.tsbuildinfo
+
+# Tauri
+apps/desktop/src-tauri/binaries/

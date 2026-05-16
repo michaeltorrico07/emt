@@ -1,1 +1,0 @@
-export { execute as captureScreenshot } from './execute.js'

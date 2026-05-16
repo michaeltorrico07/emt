@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "dev": "turbo run dev",
-    "build": "turbo run build"
+    "build": "pnpm build:agent && turbo run build",
+    "build:agent": "cargo build --release -p agent-tools && node scripts/build-agent.js"
   },
   "author": "",
   "license": "ISC",

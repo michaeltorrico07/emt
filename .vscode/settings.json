@@ -12,6 +12,4 @@
     "apps/desktop/src-tauri/Cargo.toml"
   ],
   "rust-analyzer.procMacro.enable": true,
-  "editor.formatOnSave": false
-  
 }

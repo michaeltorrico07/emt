@@ -16,7 +16,6 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@packages/agent-tools": "workspace:*",
     "zod": "^4.4.3"
   }
 }

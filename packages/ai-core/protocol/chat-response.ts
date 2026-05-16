@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { schemas } from '@packages/agent-tools'
+import { schemas } from '../tools-definition/index.js'
 
 function makeToolObject<const Name extends string, const Schema extends z.ZodTypeAny>(tool: { readonly name: Name; readonly zodSchema: Schema }) {
   return z.object({
