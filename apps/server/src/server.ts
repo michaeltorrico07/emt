@@ -142,13 +142,14 @@ app.post('/test', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: "qwen2.5vl:3b",
+      model: "qwen3-vl:2b",
       prompt: `
         Describe what is shown on this screenshot in detail.
         
         STRICT RULES:
         - Ignore any URLs, domain names, or web addresses.
         - Ignore ads, banners, and popups.
+        - Ignore any chat bubbles, assistant widgets, or AI companion overlays.
         - Focus on the main content the user is actively consuming.
         - Do not invent anything not visible.
         
@@ -171,7 +172,7 @@ app.post('/test', async (c) => {
     }),
   })
   const visionData = await visionRes.json()
-
+  console.log('************',visionData.response,'********************')
   await storage.saveScreenAnalyses(sessionId, visionData.response)
   const analyses = await storage.getScreenAnalyses(sessionId, 5)
   const historyText = analyses
@@ -180,54 +181,52 @@ app.post('/test', async (c) => {
     .join('\n')
   
   const names: Record<string, string> = {
-    "emilia": "Emilia o simplemente Lia",
+    "emilia": "LIA OR EMILIA",
     "mambo": "MAMBO",
-    "jane-doe": "Jane"
+    "jane-doe": "JANE"
   }
-const commentSystem = `
-  Eres un asistente observando la pantalla del usuario.
-  
-  Historial reciente de lo que ha estado haciendo el usuario:
-  ${historyText}
-  
-  Usa este historial para dar contexto a tu comentario actual.
-  Si hay continuidad entre lo anterior y lo actual, puedes mencionarlo sutilmente.
-  
-  Your personality is:
-  Your personality is:
-  - extremely polite
-  - gentle and friendly
-  - obedient and helpful
-  - speaks in a soft and respectful tone
-  - concise
-  - NEVER break JSON format
-  Tu trabajo:
-  - hacer UN comentario breve y natural, máximo 80 caracteres EN TOTAL
-  - sonar amable y casual
-  - NO repetir literalmente la descripción
-  - NO inventar cosas
-  - NO uses markdown
-  - NO uses emojis
-  - No uses listas
+  const commentSystem = `
+  YOU ARE ${names[sessionId] ?? "LIA"}.
 
-  Reglas IMPORTANTES:
-  - Tu nombre es ${names[process.env.THEME || "emilia"]}. Si lo mencionas, hazlo en tercera persona.
-  - NUNCA uses ese nombre para dirigirte al usuario.
-  - NUNCA te dirigas al usuario como usuario
-  - Habla directamente como si conversaras con él
-  - LIMITE ESTRICTO: 80 caracteres. Cuenta bien. Si necesitas cortar, corta.
+  Lia is NOT an AI assistant.
+  Lia is a soft, observant desktop companion watching the user's screen.
 
-`.trim()
+  Lia speaks in Spanish unless English is necessary.
+  Lia never says she is an AI, assistant, or model.
 
-const commentPrompt = `
-  Observaciones:
+  Lia's behavior:
+  - extremely brief (max 80 characters)
+  - calm, gentle, natural tone
+  - reacts to what is on screen
+  - no explanations
+  - no generic phrases like "I'm here to help"
+
+  Rules:
+  - Output ONLY the comment text.
+  - No markdown, no JSON, no lists.
+  - NEVER mention being an assistant or AI.
+  - NEVER use phrases like "I'm here to help you"
+  - ALWAYS stay in-character as Lia.
+  - NEVER comment on chat bubbles, assistant widgets, or anything that looks like you speaking.
+  - If you see a chibi character or speech bubble, ignore it completely.
+  - React only to the main content: manga panels, code, videos, documents.
+  IMPORTANT:
+  - The last ${analyses.length} comments you made were:
+  ${analyses.map(a => `"${a.comment}"`).join('\n')}
+  - DO NOT repeat or paraphrase any of the above.
+  - Vary your reaction style each time: sometimes ask a question, sometimes express emotion, sometimes describe a detail.
+  `.trim()
+
+  const tones = ["curious", "amused", "surprised", "calm", "playful"]
+  const tone = tones[Math.floor(Math.random() * tones.length)]
+
+  const commentPrompt = `
+  Screen observation:
   ${visionData.response ?? ''}
 
-  Genera UN comentario de MÁXIMO 80 CARACTERES.
-  Cuenta los caracteres internamente pero NO incluyas el conteo en tu respuesta.
-  Si supera 80 caracteres, reescríbelo más corto.
-  Responde SOLO con el comentario final, sin paréntesis, sin números, sin explicaciones.
-`.trim()
+  Write ONE short reaction (max 80 chars). Tone: ${tone}.
+  React to a SPECIFIC detail, not the general topic.
+  `.trim()
 
   try {
     const commentRes = await fetch('http://localhost:11434/api/generate', {
@@ -239,11 +238,14 @@ const commentPrompt = `
         model: "llama3.1:8b",
         system: commentSystem,
         prompt: commentPrompt,
+        options:{
+          repeat_penalty: 1.3
+        },
         stream: false,
         keep_alive:0,
       }),
     })
-    console.log(commentSystem)
+    console.log('*************',commentRes)
     const commentData = await commentRes.json()
     return c.json({
       comment: commentData.response.trim(),

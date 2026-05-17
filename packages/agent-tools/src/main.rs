@@ -49,7 +49,23 @@ fn main() {
 
 fn send_to_server(shot: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> anyhow::Result<String> {
     let client = reqwest::blocking::Client::new();
-    let rgb: Vec<u8> = shot
+    let mut masked = shot.clone();
+
+    let sw = masked.width();
+    let sh = masked.height();
+
+    let widget_w: u32 = 280;
+    let widget_h: u32 = 500;
+    let mr: u32 = 100;
+    let mb: u32 = 100;
+
+    let x = sw.saturating_sub(widget_w + mr);
+    let y = sh.saturating_sub(widget_h + mb);
+
+    mask_region(&mut masked, x, y, widget_w, widget_h);
+
+    // usar masked en lugar de shot
+    let rgb: Vec<u8> = masked
         .as_raw()
         .chunks(4)
         .flat_map(|p| [p[0], p[1], p[2]])
@@ -80,4 +96,12 @@ fn send_to_server(shot: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> anyhow::Result<Strin
 
     let data: ServerResponse = res.json()?;
     Ok(data.comment)
+}
+
+fn mask_region(image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>, x: u32, y: u32, w: u32, h: u32) {
+    for py in y..(y + h).min(image.height()) {
+        for px in x..(x + w).min(image.width()) {
+            image.put_pixel(px, py, Rgba([0, 0, 0, 255]));
+        }
+    }
 }

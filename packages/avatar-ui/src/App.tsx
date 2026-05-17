@@ -55,7 +55,7 @@ function App() {
                 relative
                 bg-white
                 pl-4
-                ${comments() === '' ?'pr-4' : 'pr-1'}
+                ${comments() === '' ?'pr-4' : 'pr-2'}
                 pt-3
                 ${comments() === '' ?'pb-2.5' : 'pb-3'}
                 rounded-[2.5rem_3rem_2.5rem_3rem]
