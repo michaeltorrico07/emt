@@ -11,6 +11,7 @@
   "packageManager": "pnpm@10.30.3",
   "dependencies": {
     "@hono/node-server": "^2.0.2",
+    "@libsql/client": "^0.17.3",
     "@packages/ai-core": "workspace:*",
     "hono": "^4.12.18"
   }

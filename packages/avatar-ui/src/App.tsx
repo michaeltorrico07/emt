@@ -24,10 +24,10 @@ function App() {
 
   return (
     <>
-      <div class="flex flex-col w-full h-screen items-center justify-end pb-1">
+      <div class="flex flex-col w-auto h-screen items-center justify-end py-1 px-1">
 
         {/* Bubble */}
-        <div class="flex justify-center w-full px-3 mb-1">
+        <div class="flex justify-center w-full px-3 ">
           <div
             class="
               relative
@@ -54,10 +54,10 @@ function App() {
               class={`
                 relative
                 bg-white
-                pl-5
-                ${comments() === '' ?'pr-5' : 'pr-3'}
+                pl-4
+                ${comments() === '' ?'pr-4' : 'pr-1'}
                 pt-3
-                ${comments() === '' ?'pb-3' : 'pb-5'}
+                ${comments() === '' ?'pb-2.5' : 'pb-3'}
                 rounded-[2.5rem_3rem_2.5rem_3rem]
                 border-[3px]
                 border-primary
@@ -80,7 +80,7 @@ function App() {
                 style={{
                   "-webkit-text-stroke": "1px",
                 }}
-                class=" rotate-1 tracking-[0.125em] text-text font-indie text-base"
+                class="tracking-[0.125em] text-text font-indie text-base"
               >
                 {comments() === '' ? character.name : comments()}
               </p>
@@ -92,11 +92,10 @@ function App() {
         <img class="mt-2 shrink-0" src={character.image} width={200} />
 
         {/* Input */}
-        <div class="pointer-events-auto w-full px-3 mt-1">
+        <div class="pointer-events-auto w-fit mt-1 px-3">
           <input
             placeholder="Escribe un mensaje..."
             class="
-              w-full
               outline-primary
               text-sm
               font-medium
@@ -113,7 +112,6 @@ function App() {
             "
           />
         </div>
-
       </div>
     </>
   )

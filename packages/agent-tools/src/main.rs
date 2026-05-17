@@ -1,10 +1,12 @@
 use image::codecs::jpeg::JpegEncoder;
 use image::ImageBuffer;
 use image::Rgba;
+use reqwest::blocking::multipart;
 use serde::{Deserialize, Serialize};
 use std::thread;
 use std::time::{Duration, Instant};
 use xcap::Monitor;
+
 #[derive(Serialize)]
 #[serde(tag = "event", content = "data")]
 enum AgentEvent {
@@ -64,9 +66,16 @@ fn send_to_server(shot: &ImageBuffer<Rgba<u8>, Vec<u8>>) -> anyhow::Result<Strin
         )
         .unwrap();
 
+    let form = multipart::Form::new().text("session_id", "EMT_TEST").part(
+        "image",
+        multipart::Part::bytes(jpeg_bytes)
+            .file_name("screenshot.jpg")
+            .mime_str("image/jpeg")?,
+    );
+
     let res = client
         .post("http://localhost:3000/test")
-        .body(jpeg_bytes)
+        .multipart(form)
         .send()?;
 
     let data: ServerResponse = res.json()?;

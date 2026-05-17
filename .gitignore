@@ -1,6 +1,5 @@
 .env
 
-
 # Rust
 target/
 
@@ -11,6 +10,11 @@ build
 .turbo/
 *.tsbuildinfo
 /*tsconfig.tsbuildinfo
+# Libsql
+*.db
+*.db-shm
+*.db-wal
 
 # Tauri
 apps/desktop/src-tauri/binaries/
+

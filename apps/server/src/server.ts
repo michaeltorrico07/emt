@@ -4,6 +4,8 @@ import { extractJSON } from './extractJson.js'
 import { ChatResponse, ChatResponseSchema, schemas } from '@packages/ai-core'
 import dotenv from 'dotenv'
 import path from 'node:path'
+import crypto from 'crypto'
+import { ChatStorageService } from './services/chat-storage.js'
 
 dotenv.config({
   path: path.resolve(process.cwd(), '../../.env'),
@@ -13,6 +15,7 @@ dotenv.config()
 
 
 const app = new Hono()
+
 app.get('/', (c) => c.text('Hono!'))
 
 const callLLM = async (prompt: string, system: string, retries = 2): Promise<ChatResponse>  =>  {
@@ -113,10 +116,25 @@ ${firstApp ? `- "Open ${firstApp.name}" ->
 })
 
 app.post('/test', async (c) => {
-  const arrayBuffer = await c.req.arrayBuffer()
+  const formData = await c.req.formData()
+
+  const sessionId = formData.get('session_id') as string
+
+  const imageFile = formData.get('image') as File
+
+  if (!imageFile) {
+    return c.json({ error: 'No image provided' }, 400)
+  }
+
+  const arrayBuffer = await imageFile.arrayBuffer()
+
   const buffer = Buffer.from(arrayBuffer)
 
   const base64Image = buffer.toString('base64')
+
+  console.log("sessionId: ",sessionId)
+  const storage = new ChatStorageService()
+
 
   const visionRes = await fetch('http://localhost:11434/api/generate', {
     method: 'POST',
@@ -124,7 +142,7 @@ app.post('/test', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: "qwen3-vl:2b",
+      model: "qwen2.5vl:3b",
       prompt: `
         Describe what is shown on this screenshot in detail.
         
@@ -153,7 +171,14 @@ app.post('/test', async (c) => {
     }),
   })
   const visionData = await visionRes.json()
-  console.log(visionData.response)
+
+  await storage.saveScreenAnalyses(sessionId, visionData.response)
+  const analyses = await storage.getScreenAnalyses(sessionId, 5)
+  const historyText = analyses
+    .reverse()
+    .map((a, i) => `[${i + 1}] ${a.analysis}`)
+    .join('\n')
+  
   const names: Record<string, string> = {
     "emilia": "Emilia o simplemente Lia",
     "mambo": "MAMBO",
@@ -161,7 +186,21 @@ app.post('/test', async (c) => {
   }
 const commentSystem = `
   Eres un asistente observando la pantalla del usuario.
-
+  
+  Historial reciente de lo que ha estado haciendo el usuario:
+  ${historyText}
+  
+  Usa este historial para dar contexto a tu comentario actual.
+  Si hay continuidad entre lo anterior y lo actual, puedes mencionarlo sutilmente.
+  
+  Your personality is:
+  Your personality is:
+  - extremely polite
+  - gentle and friendly
+  - obedient and helpful
+  - speaks in a soft and respectful tone
+  - concise
+  - NEVER break JSON format
   Tu trabajo:
   - hacer UN comentario breve y natural, máximo 80 caracteres EN TOTAL
   - sonar amable y casual
@@ -174,7 +213,7 @@ const commentSystem = `
   Reglas IMPORTANTES:
   - Tu nombre es ${names[process.env.THEME || "emilia"]}. Si lo mencionas, hazlo en tercera persona.
   - NUNCA uses ese nombre para dirigirte al usuario.
-  - No uses palabras como El usuario
+  - NUNCA te dirigas al usuario como usuario
   - Habla directamente como si conversaras con él
   - LIMITE ESTRICTO: 80 caracteres. Cuenta bien. Si necesitas cortar, corta.
 
@@ -190,8 +229,6 @@ const commentPrompt = `
   Responde SOLO con el comentario final, sin paréntesis, sin números, sin explicaciones.
 `.trim()
 
-  console.log('*************\n',commentSystem,'\n******************\n',commentPrompt,'\n******************\n',visionData.response,'\n******************\n')
-
   try {
     const commentRes = await fetch('http://localhost:11434/api/generate', {
       method: 'POST',
@@ -199,15 +236,15 @@ const commentPrompt = `
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "llama3.2:3b",
+        model: "llama3.1:8b",
         system: commentSystem,
         prompt: commentPrompt,
         stream: false,
         keep_alive:0,
       }),
     })
+    console.log(commentSystem)
     const commentData = await commentRes.json()
-    console.log(commentData.response)
     return c.json({
       comment: commentData.response.trim(),
     })
