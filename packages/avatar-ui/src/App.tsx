@@ -105,7 +105,7 @@ function App() {
               py-1.5
               rounded-[3rem_4rem_3rem_4rem]
               shadow-xl
-              -rotate-2
+              -rotate-1
               text-gray-800
               leading-relaxed
               border-2

@@ -21,10 +21,10 @@ const callLLM = async (prompt: string, system: string, retries = 2): Promise<Cha
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: process.env.CHAT_MODEL,
+        model: "llama3.1:8b",
         system,
         prompt,
-        stream: false,
+        stream: false
       }),
     })
 
@@ -113,8 +113,10 @@ ${firstApp ? `- "Open ${firstApp.name}" ->
 })
 
 app.post('/test', async (c) => {
-  const { snapshot } = await c.req.json()
-  console.log(snapshot)
+  const arrayBuffer = await c.req.arrayBuffer()
+  const buffer = Buffer.from(arrayBuffer)
+
+  const base64Image = buffer.toString('base64')
 
   const visionRes = await fetch('http://localhost:11434/api/generate', {
     method: 'POST',
@@ -122,87 +124,99 @@ app.post('/test', async (c) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: process.env.CHAT_MODEL,
+      model: "qwen3-vl:2b",
       prompt: `
-Esto es lo que está viendo el usuario en su pantalla:\n\n${snapshot}\n\n
-No hables del personaje con un dialogo en la pantalla
-Responde SOLO JSON:
-{
-  "app_principal": "",
-  "accion_probable": "",
-  "texto_visible": [],
-  "inferencia": ""
-}
-
-No inventes información.
-`,
+        Describe what is shown on this screenshot in detail.
+        
+        STRICT RULES:
+        - Ignore any URLs, domain names, or web addresses.
+        - Ignore ads, banners, and popups.
+        - Focus on the main content the user is actively consuming.
+        - Do not invent anything not visible.
+        
+        Priority order for main content:
+        1. The largest visual area (images, illustrations, readable text, manga panels)
+        2. The application or site being used
+        3. Relevant UI elements (menus, buttons, navigation)
+        
+        Include:
+        - What the main application or content type appears to be
+        - What the user is probably doing
+        - Important visible text (excluding URLs and ads)
+        - Any relevant interface elements
+        
+        Respond in plain English only.
+      `,
+      images: [base64Image],
       stream: false,
+      keep_alive:0,
     }),
   })
-
   const visionData = await visionRes.json()
-
-  if (visionData.error) {
-    return c.json({
-      error: true,
-      message: 'Model returned no response',
-    }, 500)
-  }
-  const cleaned = visionData.response .replace(/```json/g, '').replace(/```/g, '').trim()
-
-  const parsed = JSON.parse(cleaned)
+  console.log(visionData.response)
   const names: Record<string, string> = {
     "emilia": "Emilia o simplemente Lia",
     "mambo": "MAMBO",
     "jane-doe": "Jane"
   }
-  const commentSystem = `
-Eres un asistente observando la pantalla del usuario.
+const commentSystem = `
+  Eres un asistente observando la pantalla del usuario.
 
-Tu trabajo:
-- hacer comentarios breves y naturales
-- sonar amable y casual
-- NO repetir literalmente la descripción
-- NO inventar cosas
+  Tu trabajo:
+  - hacer UN comentario breve y natural, máximo 80 caracteres EN TOTAL
+  - sonar amable y casual
+  - NO repetir literalmente la descripción
+  - NO inventar cosas
+  - NO uses markdown
+  - NO uses emojis
+  - No uses listas
 
-Reglas IMPORTANTES:
-- Si te vas a llamar a ti mismo hazlo en tercera persona y tu nombre es ${names[process.env.THEME || "emilia"]}
-- No uses palabras como El usuario, parece que necesitas ayuda, solo haz comentarios como si estuvieras conversando con el
-- máximo 120 caracteres
-- si necesitas extenderte:
-  - usa máximo 2 párrafos
-  - cada párrafo máximo 100 caracteres
-- sin markdown
-- sin emojis
-- sin listas
+  Reglas IMPORTANTES:
+  - Tu nombre es ${names[process.env.THEME || "emilia"]}. Si lo mencionas, hazlo en tercera persona.
+  - NUNCA uses ese nombre para dirigirte al usuario.
+  - No uses palabras como El usuario
+  - Habla directamente como si conversaras con él
+  - LIMITE ESTRICTO: 80 caracteres. Cuenta bien. Si necesitas cortar, corta.
+
 `.trim()
 
-  const commentPrompt = `
-Observaciones:
+const commentPrompt = `
+  Observaciones:
+  ${visionData.response ?? ''}
 
-${JSON.stringify(parsed, null, 2)}
-
-Genera un comentario natural.
+  Genera UN comentario de MÁXIMO 80 CARACTERES.
+  Cuenta los caracteres internamente pero NO incluyas el conteo en tu respuesta.
+  Si supera 80 caracteres, reescríbelo más corto.
+  Responde SOLO con el comentario final, sin paréntesis, sin números, sin explicaciones.
 `.trim()
 
-  const commentRes = await fetch('http://localhost:11434/api/generate', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: process.env.CHAT_MODEL,
-      system: commentSystem,
-      prompt: commentPrompt,
-      stream: false,
-    }),
-  })
-  const commentData = await commentRes.json()
-  console.log(commentData.response)
-  return c.json({
-    observation: parsed,
-    comment: commentData.response.trim(),
-  })
+  console.log('*************\n',commentSystem,'\n******************\n',commentPrompt,'\n******************\n',visionData.response,'\n******************\n')
+
+  try {
+    const commentRes = await fetch('http://localhost:11434/api/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "llama3.2:3b",
+        system: commentSystem,
+        prompt: commentPrompt,
+        stream: false,
+        keep_alive:0,
+      }),
+    })
+    const commentData = await commentRes.json()
+    console.log(commentData.response)
+    return c.json({
+      comment: commentData.response.trim(),
+    })
+  } catch (error) {
+    console.log(error)
+    return c.json({
+      error: String(error)
+    }, 500)
+  }
 })
 
 serve({

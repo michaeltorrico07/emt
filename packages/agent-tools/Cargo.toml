@@ -8,8 +8,11 @@ edition = "2021"
 name = "agent-tools"
 
 [dependencies]
-uiautomation = "0.11"
+uiautomation = { version = "0.25.0", features = ["screenshot"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 anyhow = "1"
 reqwest = { version = "0.12", features = ["blocking", "json"] }
+image = "0.25"
+screenshots = "0.8"
+xcap = "0.4"
